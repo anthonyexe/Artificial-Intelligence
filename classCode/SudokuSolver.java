@@ -19,7 +19,7 @@ public class SudokuSolver {
 			String nextLine;
 			int rows = 0;
 			
-			for (nextLine = bReader.readLine(); nextLine != null; nextLine = bReader.readLine(), rows++) {
+			for (nextLine = bReader.readLine(); (nextLine != null && rows < 9); nextLine = bReader.readLine(), rows++) {
 				String[] lineValues = nextLine.split(" ");
 				
 				for (int i = 0; i < 9; i++) {
