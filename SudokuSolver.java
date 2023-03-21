@@ -66,7 +66,7 @@ public class SudokuSolver {
 					else if ((i <= 2) && (j >= 3 && j <= 5)) {
 						
 					}
-					else if ((i <= 2) && (j >= 5 && j <= 7)) {
+					else if ((i <= 2) && (j >= 6 && j <= 8)) {
 						
 					}
 					else if ((i >= 3 && i <= 5) && j <= 2) {
