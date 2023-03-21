@@ -21,6 +21,7 @@ public class SudokuTester {
 		}*/
 		//System.out.println(testing);
 		solver.initializePuzzle();
+		solver.availabilityCalc();
 	}
 
 }
