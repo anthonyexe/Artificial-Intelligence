@@ -255,16 +255,13 @@ public class SudokuSolver {
 		boolean singleValueRemaining = false;
 		
 			for (int i = 0, count = 0; i < 9; i++) {
-				System.out.println();
 				for (int j = 0; j < 9; j++) {
 					if (availabilityLists.get(count).get(0).size() == 1) {
 						singleValueRemaining = true;
-						int row = availabilityLists.get(count).get(1).get(0);
-						int col = availabilityLists.get(count).get(1).get(1);
-						puzzle[row][col] = availabilityLists.get(count).get(0).get(0);
+						int value = availabilityLists.get(count).get(0).get(0);
+						puzzle[i][j] = value;
 						availabilityLists.get(count).get(0).clear();
 					}
-					System.out.print(puzzle[i][j] + " ");
 					count++;
 				}
 			}
@@ -497,6 +494,21 @@ public class SudokuSolver {
 		return leastValues;
 	}
 	
+	public ArrayList<ArrayList<ArrayList<Integer>>> copyAvailabilityList() {
+		ArrayList<ArrayList<ArrayList<Integer>>> copy = new ArrayList<ArrayList<ArrayList<Integer>>>(81);
+		for (int i = 0; i < availabilityLists.size(); i++) {
+			copy.add(new ArrayList<ArrayList<Integer>>());
+			copy.get(i).add(new ArrayList<Integer>());
+			copy.get(i).add(new ArrayList<Integer>());
+			for (int j = 0; j < availabilityLists.get(i).get(0).size(); j++) {
+				copy.get(i).get(0).add(availabilityLists.get(i).get(0).get(j));
+			}
+			copy.get(i).get(1).add(availabilityLists.get(i).get(1).get(0));
+			copy.get(i).get(1).add(availabilityLists.get(i).get(1).get(1));
+		}
+		return copy;
+	}
+	
 	public ArrayList<ArrayList<ArrayList<Integer>>> leastRemainingSet(int num) {
 		ArrayList<ArrayList<ArrayList<Integer>>> set = new ArrayList<ArrayList<ArrayList<Integer>>>();
 		for (int i = 0; i < availabilityLists.size(); i++) {
@@ -517,10 +529,10 @@ public class SudokuSolver {
 		return result;
 	}
 	
-	public int remainingValuesCount(int size) {
+	public int remainingValuesCount(int size, ArrayList<ArrayList<ArrayList<Integer>>> list) {
 		int count = 0;
-		for (int i = 0; i < availabilityLists.size(); i++) {
-			if (availabilityLists.get(i).get(0).size() == size)
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i).get(0).size() == size)
 				count++;
 		}
 		return count;
@@ -536,52 +548,172 @@ public class SudokuSolver {
 		}
 		return zeros;
 	}
-	
-	public boolean DFS() {
-		//ArrayList<ArrayList<Integer>> leastValues = new ArrayList<ArrayList<Integer>>();
-		boolean complete = false;
-		int ind = 2;
-		/*
-		do {
-			
-		} while (remainingValuesSize(i));
-		for (int i = 2; i < 9; i++) {
-			leastValues = leastRemaining(i);
-			int row = leastValues.get(1).get(0);
-			int col = leastValues.get(1).get(1);
-			
-			for (int j = 0; j < i; j++) {
-				int value = leastValues.get(0).get(j);
-				puzzle[row][col] = value;
-				if (!checkDuplicates(row, col, value)) {
-					int index = (9 * row) + col;
-					availabilityLists.get(index).get(0).clear();
-					availabilityCalc3D();
+	//Returns true if the puzzle is complete
+	public boolean checkPuzzle() {
+		boolean result = true;
+		if (!remainingZeros()) {
+			for (int i = 0; i < 9; i++) {
+				for (int j = 0; j < 9; j++) {
+					int value = puzzle[i][j];
+					if (checkDuplicates(i, j, value))
+						result = false;
 				}
 			}
-		} */
-		
-		
-		//int i;
-		for (int i = 2; i < 9; i++) {
-			for (int j = 0; j < remainingValuesCount(i); j++) {
-				ArrayList<ArrayList<Integer>> leastValues = new ArrayList<ArrayList<Integer>>();
-				leastValues = leastRemaining(i);
-				int row = leastValues.get(1).get(0);
-				int col = leastValues.get(1).get(1);
-				int index = (9 * row) + col;
-				//System.out.println(leastValues);
-				for (int k = 0; k < i; k++) {
-					int value = leastValues.get(0).get(k);
-					puzzle[row][col] = value;
-					if (!checkDuplicates(row, col, value)) {
-						availabilityLists.get(index).get(0).clear();
-						availabilityCalc3D();
+		}
+		else
+			result = false;
+		return result;
+	}
+	//Returns true if there are no duplicates in the entire puzzle even if it is not finished
+	public boolean checkPuzzleWithZeros() {
+		boolean result = true;
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				if (puzzle[i][j] != 0) {
+					int value = puzzle[i][j];
+					if (checkDuplicates(i, j, value))
+						result = false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	public int zeroCount() {
+		int zeros = 0;
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				if (puzzle[i][j] == 0) {
+					zeros++;
+				}
+			}
+		}
+		return zeros;
+	}
+	
+	public boolean testing3() {
+		for (int i = 1; i <= 9; i++) {
+			for (int j = 0; j < availabilityLists.size(); j++) {
+				if (availabilityLists.get(j).get(0).size() == i) {
+					int row = availabilityLists.get(j).get(1).get(0);
+					int col = availabilityLists.get(j).get(1).get(1);
+					for (int k = 0; k < i; k++) {
+						int value = availabilityLists.get(j).get(0).get(k);
+						if (!checkDuplicates(row, col, value)) {
+							puzzle[row][col] = value;
+							availabilityLists.get(j).get(0).clear();
+							availabilityCalc3D();
+							if (testing3()) {
+								return true;
+							}
+							else {
+								puzzle[row][col] = 0;
+								availabilityLists.get(j).get(0).remove(value);
+							}
+						}
 					}
 				}
 			}
+		}
+		return true;
+	}
+	
+	public boolean testing2() {
+		boolean result = false;
+		
+		for (int i = 2; i < 9; i++) {
+			for (int j = 0; j < availabilityLists.size(); j++) {
+				if (availabilityLists.get(j).get(0).size() == i) {
+					int row = availabilityLists.get(j).get(1).get(0);
+					int col = availabilityLists.get(j).get(1).get(1);
+					for (int k = 0; k < i; k++) {
+						int value = availabilityLists.get(j).get(0).get(k);
+						if (puzzle[row][col] == 0 && !checkDuplicates(row, col, value)) {
+							puzzle[row][col] = value;
+							availabilityLists.get(j).get(0).clear();
+							availabilityCalc3D();
+							//forwardPropagation();
+							break;
+						}
+						else if (checkDuplicates(row, col, value) && k != i - 1) {
+							continue;
+						}
+						else if (checkDuplicates(row, col, value) && k == i - 1) {
+							continue;
+						}
+						else if (checkPuzzle()) {
+							result = true;
+						}
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
+	public void testing() {
+		for (int i = 2; i < 9; i++) {
+			ArrayList<ArrayList<ArrayList<Integer>>> copy = new ArrayList<ArrayList<ArrayList<Integer>>>();
+			copy = copyAvailabilityList();
+			//for (int j = 0; j < remainingValuesCount(i, copy); j++) {
+				for (int k = 0; k < copy.size(); k++) {
+					if (copy.get(k).get(0).size() == i) {
+						System.out.println(copy.get(k));
+						int row = copy.get(k).get(1).get(0);
+						int col = copy.get(k).get(1).get(1);
+						for (int v = 0; v < i; v++) {
+							int value = copy.get(k).get(0).get(v);
+							System.out.println(value);
+							puzzle[row][col] = value;
+							if (!checkDuplicates(row, col, value)) {
+								
+							}
+						}
+					}
+				}
+			//}
+		}
+	}
+	
+	public boolean DFS() {
+		//ArrayList<ArrayList<Integer>> leastValues = new ArrayList<ArrayList<Integer>>();
+		boolean result = false;
+		
+		if (checkPuzzle()) {
+			result = true;
+			return result;
 		} 
 		/*
+		ArrayList<ArrayList<ArrayList<Integer>>> copy = new ArrayList<ArrayList<ArrayList<Integer>>>(81);
+		copy = copyAvailabilityList();
+			for (int i = 2; i <= 9; i++) {
+				
+				//System.out.println(copy);
+					for (int k = 0; k < copy.size(); k++) {
+						if (copy.get(k).get(0).size() == i) {
+							int row = copy.get(k).get(1).get(0);
+							int col = copy.get(k).get(1).get(1);
+							//int index = (9 * row) + col;
+							for (int v = 0; v < i; v++) {
+								int value = copy.get(k).get(0).get(v);
+								puzzle[row][col] = value;
+								if (checkPuzzle()) {
+									//copy.get(k).get(0).clear();
+									result = true;
+									return result;
+								}
+								else if (checkDuplicates(row, col, value)) {
+									puzzle[row][col] = 0;
+									DFS();
+								}
+							}
+						}
+					}
+			}
+			*/
+		//return result;
+		
+		
 		for (int i = 2; i < 9; i++) {
 			ArrayList<ArrayList<ArrayList<Integer>>> leastValuesSet = new ArrayList<ArrayList<ArrayList<Integer>>>();
 			leastValuesSet = leastRemainingSet(i);
@@ -593,55 +725,41 @@ public class SudokuSolver {
 					for (int k = 0; k < i; k++) {
 						int value = leastValuesSet.get(j).get(0).get(k);
 						puzzle[row][col] = value;
-						if (!checkDuplicates(row, col, value)) {
+						if (checkPuzzle()) {
+							result = true;
+							return result;
+						}
+						else if (!checkDuplicates(row, col, value)) {
 							int index = (9 * row) + col;
 							availabilityLists.get(index).get(0).clear();
 							availabilityCalc3D();
 						}
+						else {
+							puzzle[row][col] = 0;
+						}
 					}
 				}
 			}
-		}*/
-		
-		if (!remainingZeros())
-			complete = true;
-		return complete;
+		}
+		return result;
+		/*
+		if (checkPuzzle())
+			return true;
+		else
+			return false;*/
 	}
 	
 	public void solve() {
-		boolean dupe = false;
-		int zeroCount = 0;
-		for (int i = 0, count = 0; i < 9; i++) {
-			for (int j = 0; j < 9; j++) {
-				if (puzzle[i][j] == 0)
-					zeroCount++;
-				if (puzzle[i][j] > 0) {
-					int row = availabilityLists.get(count).get(1).get(0);
-					int col = availabilityLists.get(count).get(1).get(1);
-					int value = puzzle[row][col];
-					dupe = checkDuplicates(row, col, value);
-				}
-				count++;
-			}
-		}
-		printSudoku();
-		availabilityCalc3D();
-		System.out.println(dupe);
+		
 		System.out.println("---------------------------------------------------------------------");
-		DFS();
+		availabilityCalc3D();
+		forwardPropagationCall();
+		testing3();
 		printSudoku();
 		System.out.println();
-		for (int i = 1; i < 9; i++) {
-			System.out.println(remainingValuesCount(i));
-		}
-		System.out.println(zeroCount);
-		DFS();
-		printSudoku();
-		System.out.println();
-		DFS();
-		printSudoku();
-		System.out.println();
-		DFS();
-		printSudoku();
+		System.out.println(checkPuzzle());
+		System.out.println(checkPuzzleWithZeros());
+		System.out.println(zeroCount());
+		
 	}
 }
